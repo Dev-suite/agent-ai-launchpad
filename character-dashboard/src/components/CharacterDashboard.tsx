@@ -1,4 +1,3 @@
-//@ts-nocheck
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -31,18 +30,19 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Navbar from "@/components/Navbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { useAlgorand } from "@/components/evm-provider";
 
 interface Character {
   id: string;
   name: string;
   description: string;
-  evm_address: string;
+  algorand_address: string;
   type: 'game_character' | 'ai_character';
   twitter_handle?: string;
-  token_address: string | null;
-  token_name: string | null;
-  token_symbol: string | null;
-  token_image_url: string | null;
+  asset_id: number | null;
+  asset_name: string | null;
+  asset_unit_name: string | null;
+  asset_url: string | null;
   theme: string | null;
   goal: string | null;
   antagonist: string | null;
@@ -221,11 +221,11 @@ const CharacterCard = ({
             </p>
             <div className="flex items-center gap-4">
               <Badge variant="outline" className="font-mono bg-primary/5">
-                {shortenAddress(character.evm_address)}
+                {shortenAddress(character.algorand_address)}
               </Badge>
-              {character.token_address && (
+              {character.asset_id && (
                 <Badge variant="outline" className="font-mono bg-primary/5">
-                  Token: {shortenAddress(character.token_address)}
+                  ASA ID: {character.asset_id}
                 </Badge>
               )}
             </div>
@@ -293,8 +293,13 @@ const CharacterCard = ({
       </CardHeader>
       <CardContent>
         <Badge variant="outline" className="font-mono bg-primary/5">
-          {shortenAddress(character.evm_address)}
+          {shortenAddress(character.algorand_address)}
         </Badge>
+        {character.asset_id && (
+          <Badge variant="outline" className="ml-2 font-mono bg-primary/5">
+            ASA: {character.asset_id}
+          </Badge>
+        )}
       </CardContent>
       <CardFooter className="flex justify-between gap-2 mt-auto pt-4 border-t">
         <Button
@@ -377,14 +382,14 @@ const GameCard = ({
           <div className="space-y-4">
             <p className="text-muted-foreground mt-2">Goal: {game.goal}</p>
             <p className="text-muted-foreground">Antagonist: {game.antagonist}</p>
-            {game.evm_address && (
+            {game.algorand_address && (
               <Badge variant="outline" className="font-mono">
-                {shortenAddress(game.evm_address)}
+                {shortenAddress(game.algorand_address)}
               </Badge>
             )}
-            {game.token?.address && (
-              <Badge variant="outline" className="font-mono">
-                {shortenAddress(game.token.address)}
+            {game.asset_id && (
+              <Badge variant="outline" className="ml-2 font-mono">
+                ASA: {game.asset_id}
               </Badge>
             )}
           </div>
@@ -417,14 +422,14 @@ const GameCard = ({
       </CardHeader>
       <CardContent>
         <p className="text-sm text-muted-foreground mb-4">Goal: {game.goal}</p>
-        {game.evm_address && (
+        {game.algorand_address && (
           <Badge variant="outline" className="font-mono">
-            {shortenAddress(game.evm_address)}
+            {shortenAddress(game.algorand_address)}
           </Badge>
         )}
-        {game.token?.address && (
-          <Badge variant="outline" className="font-mono">
-            {shortenAddress(game.token.address)}
+        {game.asset_id && (
+          <Badge variant="outline" className="ml-2 font-mono">
+            ASA: {game.asset_id}
           </Badge>
         )}
       </CardContent>
@@ -456,6 +461,7 @@ const CharacterDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { isConnected } = useAlgorand();
 
   useEffect(() => {
     fetchCharacters();
@@ -514,7 +520,6 @@ const CharacterDashboard = () => {
             </p>
           </div>
           <div className="flex gap-4">
-
             <Button onClick={() => navigate("/create")}>
               <Plus className="mr-2 h-4 w-4" />
               Create Agent
@@ -569,7 +574,6 @@ const CharacterDashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardFooter className="flex gap-4">
-
               <Button onClick={() => navigate("/create")}>
                 <Plus className="mr-2 h-4 w-4" />
                 Create Agent

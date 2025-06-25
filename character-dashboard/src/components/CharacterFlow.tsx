@@ -1,4 +1,3 @@
-
 import {
 	ReactFlow,
 	Background,
@@ -10,12 +9,16 @@ import "@xyflow/react/dist/style.css";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 
-
 interface CharacterFlowProps {
 	character: {
 	  name: string;
 	  description: string;
-	  evm_address: string;
+	  algorandAddress: string;
+	  asset?: {
+		assetId: number;
+		name: string;
+		unitName: string;
+	  };
 	  modelProvider?: string;
 	  settings?: { voice?: { model: string } };
 	  clients?: string[];
@@ -52,11 +55,20 @@ interface CharacterFlowProps {
 						{/* Wallet */}
 						<div className="mb-6">
 							<Badge variant="outline" className="font-mono text-sm px-4 py-1">
-								{character?.evm_address
-									? `${character.evm_address.slice(0, 6)}...${character.evm_address.slice(-4)}`
+								{character?.algorandAddress
+									? `${character.algorandAddress.slice(0, 6)}...${character.algorandAddress.slice(-4)}`
 									: "No Address"}
 							</Badge>
 						</div>
+
+						{/* Asset Info */}
+						{character?.asset && (
+							<div className="mb-6">
+								<Badge variant="secondary" className="font-mono text-sm px-4 py-1">
+									ASA: {character.asset.assetId} ({character.asset.unitName})
+								</Badge>
+							</div>
+						)}
 
 						{/* Settings */}
 						<div className="text-sm text-muted-foreground mb-6 space-y-1">

@@ -35,7 +35,7 @@ export interface CharacterData {
 		memoryEnabled?: boolean;
 		responseStyle?: string;
 	};
-	token?: TokenData;
+	asset?: AssetData;
 }
 
 export interface Message {
@@ -55,14 +55,16 @@ export interface TerminalLog {
 }
 export type CharacterType = "ai_companion" | "influencer" | "game_character";
 
-export interface TokenData {
-	address: string;
+export interface AssetData {
+	assetId: number;
 	name: string;
-	symbol: string;
-	imageUrl: string;
-	description: string;
-	transactionHash?: string;
+	unitName: string;
+	total?: number;
+	url?: string;
+	txId?: string;
+	description?: string;
 }
+
 export interface TypeInfo {
 	title: string;
 	description: string;

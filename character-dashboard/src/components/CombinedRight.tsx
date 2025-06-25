@@ -1,22 +1,17 @@
-//@ts-nocheck
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SwapWidget from "./SwapWidget";
 import CharacterFlow from "./CharacterFlow";
-import { PTOKEN_ABI } from "./createui/ptokenabi";
-import { abi } from "./createui/abi";
-import { Address } from "viem";
-import type { Abi } from "viem";
 
 interface CharacterFlowProps {
 	character: {
 		name: string;
 		description: string;
-		evm_address: string;
-		token?: {
+		algorandAddress: string;
+		asset?: {
+			assetId: number;
 			name: string;
-			symbol: string;
-			address: string;
+			unitName: string;
 		};
 		modelProvider?: string;
 		settings?: { voice?: { model: string } };
@@ -28,9 +23,6 @@ interface CharacterFlowProps {
 }
 
 const CombinedRightPanel = ({ character }: CharacterFlowProps) => {
-	const TOKEN_FACTORY_ADDRESS = "0x811460efdcB4d335443a306568AEF6ed4DeA65Dd" as Address;
-	const PTOKEN_ADDRESS = "0x206De6ac6b1EBa897788cC0FE89A47365c214504" as Address;
-
 	return (
 		<div className="relative h-full rounded-xl bg-transparent">
 			{/* Enhanced backdrop blur container */}
@@ -64,15 +56,10 @@ const CombinedRightPanel = ({ character }: CharacterFlowProps) => {
 							<div className="flex items-start justify-center h-full pt-8">
 								<div className="w-full max-w-md px-4">
 									<SwapWidget
-										tokenFactoryAddress={TOKEN_FACTORY_ADDRESS}
-										tokenFactoryABI={abi as Abi}
-										pTokenAddress={PTOKEN_ADDRESS}
-										pTokenABI={PTOKEN_ABI as Abi}
-										defaultTokenAddress={character?.token?.address as Address}
-										defaultTokenInfo={character?.token ? {
-											name: character.token.name,
-												symbol: character.token.symbol,
-												address: character.token.address as Address
+										defaultTokenInfo={character?.asset ? {
+											assetId: character.asset.assetId,
+											name: character.asset.name,
+											unitName: character.asset.unitName
 										} : undefined}
 									/>
 								</div>

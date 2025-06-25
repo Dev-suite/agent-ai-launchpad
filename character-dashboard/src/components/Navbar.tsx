@@ -1,6 +1,5 @@
-import  { useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import {
 	NavigationMenu,
 	NavigationMenuItem,
@@ -9,6 +8,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Twitter } from "lucide-react";
+import { ConnectButton } from "@/components/ui/connect-button";
 
 const Navbar = () => {
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

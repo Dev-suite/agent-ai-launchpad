@@ -3,10 +3,10 @@ import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import axios from "axios";
 import FormData from "form-data";
-import { ethers } from "ethers";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
+import algosdk from "algosdk";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,22 +40,22 @@ class CharacterStorage {
                     antagonist TEXT,
                     ipfs_hash TEXT,
                     ipfs_url TEXT,
-                    evm_address TEXT,
-                    evm_private_key TEXT,
+                    algorand_address TEXT,
+                    algorand_mnemonic TEXT,
                     local_file_path TEXT,
-                    token_address TEXT,
-                    token_name TEXT,
-                    token_symbol TEXT,
-                    token_image_url TEXT,
-                    token_description TEXT,
-                    token_tx_hash TEXT,
+                    asset_id INTEGER,
+                    asset_name TEXT,
+                    asset_unit_name TEXT,
+                    asset_url TEXT,
+                    asset_description TEXT,
+                    asset_tx_hash TEXT,
                     twitter_handle TEXT,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 );
 
                 CREATE INDEX IF NOT EXISTS idx_character_name ON character_storage(name);
-                CREATE INDEX IF NOT EXISTS idx_token_address ON character_storage(token_address);
+                CREATE INDEX IF NOT EXISTS idx_asset_id ON character_storage(asset_id);
                 CREATE INDEX IF NOT EXISTS idx_character_type ON character_storage(type);
             `);
 
@@ -127,11 +127,12 @@ class CharacterStorage {
 		}
 	}
 
-	generateEVMWallet() {
-		const wallet = ethers.Wallet.createRandom();
+	generateAlgorandAccount() {
+		const account = algosdk.generateAccount();
+		const mnemonic = algosdk.secretKeyToMnemonic(account.sk);
 		return {
-			address: wallet.address,
-			privateKey: wallet.privateKey,
+			address: account.addr,
+			mnemonic: mnemonic,
 		};
 	}
 
@@ -139,19 +140,19 @@ class CharacterStorage {
 		try {
 			await this.initialize();
 
-			// Generate EVM wallet
-			const wallet = this.generateEVMWallet();
+			// Generate Algorand account
+			const account = this.generateAlgorandAccount();
 
 			// Upload to IPFS via Pinata
 			const pinataResult = await this.uploadToPinata({
 				...characterData,
-				evmAddress: wallet.address,
+				algorandAddress: account.address,
 			});
 
 			// Save to local file system
 			const localFile = await this.saveToLocalFile({
 				...characterData,
-				evmAddress: wallet.address,
+				algorandAddress: account.address,
 				ipfsHash: pinataResult.ipfsHash,
 				ipfsUrl: pinataResult.ipfsUrl,
 			});
@@ -168,15 +169,15 @@ class CharacterStorage {
                     antagonist,
                     ipfs_hash,
                     ipfs_url,
-                    evm_address,
-                    evm_private_key,
+                    algorand_address,
+                    algorand_mnemonic,
                     local_file_path,
-                    token_address,
-                    token_name,
-                    token_symbol,
-                    token_image_url,
-                    token_description,
-                    token_tx_hash,
+                    asset_id,
+                    asset_name,
+                    asset_unit_name,
+                    asset_url,
+                    asset_description,
+                    asset_tx_hash,
                     twitter_handle
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `,
@@ -189,15 +190,15 @@ class CharacterStorage {
 					characterData.antagonist || null,
 					pinataResult.ipfsHash,
 					pinataResult.ipfsUrl,
-					wallet.address,
-					wallet.privateKey,
+					account.address,
+					account.mnemonic,
 					localFile.path,
-					characterData.token?.address || null,
-					characterData.token?.name || null,
-					characterData.token?.symbol || null,
-					characterData.token?.imageUrl || null,
-					characterData.token?.description || null,
-					characterData.token?.transactionHash || null,
+					characterData.asset?.assetId || null,
+					characterData.asset?.name || null,
+					characterData.asset?.unitName || null,
+					characterData.asset?.url || null,
+					characterData.asset?.description || null,
+					characterData.asset?.txId || null,
 					characterData.twitter_handle || null,
 				],
 			);
@@ -212,11 +213,11 @@ class CharacterStorage {
 				antagonist: characterData.antagonist,
 				ipfsHash: pinataResult.ipfsHash,
 				ipfs_url: pinataResult.ipfsUrl,
-				evm_address: wallet.address,
-				token_address: characterData.token?.address || null,
-				token_name: characterData.token?.name || null,
-				token_symbol: characterData.token?.symbol || null,
-				token_image_url: characterData.token?.imageUrl || null,
+				algorand_address: account.address,
+				asset_id: characterData.asset?.assetId || null,
+				asset_name: characterData.asset?.name || null,
+				asset_unit_name: characterData.asset?.unitName || null,
+				asset_url: characterData.asset?.url || null,
 				twitter_handle: characterData.twitter_handle || null
 			};
 		} catch (error) {
@@ -263,14 +264,14 @@ class CharacterStorage {
 					antagonist: character.antagonist,
 					ipfsHash: character.ipfs_hash,
 					ipfsUrl: character.ipfs_url,
-					evmAddress: character.evm_address,
-					token: character.token_address ? {
-						address: character.token_address,
-						name: character.token_name,
-						symbol: character.token_symbol,
-						imageUrl: character.token_image_url,
-						description: character.token_description,
-						transactionHash: character.token_tx_hash,
+					algorandAddress: character.algorand_address,
+					asset: character.asset_id ? {
+						assetId: character.asset_id,
+						name: character.asset_name,
+						unitName: character.asset_unit_name,
+						url: character.asset_url,
+						description: character.asset_description,
+						txId: character.asset_tx_hash,
 					} : null,
 				};
 
@@ -289,14 +290,14 @@ class CharacterStorage {
 					antagonist: character.antagonist,
 					ipfsHash: character.ipfs_hash,
 					ipfsUrl: character.ipfs_url,
-					evmAddress: character.evm_address,
-					token: character.token_address ? {
-						address: character.token_address,
-						name: character.token_name,
-						symbol: character.token_symbol,
-						imageUrl: character.token_image_url,
-						description: character.token_description,
-						transactionHash: character.token_tx_hash,
+					algorandAddress: character.algorand_address,
+					asset: character.asset_id ? {
+						assetId: character.asset_id,
+						name: character.asset_name,
+						unitName: character.asset_unit_name,
+						url: character.asset_url,
+						description: character.asset_description,
+						txId: character.asset_tx_hash,
 					} : null,
 				};
 			}
@@ -319,11 +320,11 @@ class CharacterStorage {
 					goal,
 					antagonist,
 					ipfs_url,
-					evm_address,
-					token_address,
-					token_name,
-					token_symbol,
-					token_image_url,
+					algorand_address,
+					asset_id,
+					asset_name,
+					asset_unit_name,
+					asset_url,
 					twitter_handle,
 					created_at,
 					updated_at
@@ -354,18 +355,18 @@ class CharacterStorage {
 			// Upload updated data to IPFS
 			const pinataResult = await this.uploadToPinata({
 				...updateData,
-				evmAddress: existing.evm_address,
+				algorandAddress: existing.algorand_address,
 			});
 
 			// Save updated file locally
 			const localFile = await this.saveToLocalFile({
 				...updateData,
-				evmAddress: existing.evm_address,
+				algorandAddress: existing.algorand_address,
 				ipfsHash: pinataResult.ipfsHash,
 				ipfsUrl: pinataResult.ipfsUrl,
 			});
 
-			// Update database with all fields including token information
+			// Update database with all fields including asset information
 			await this.db.run(
 				`
 				UPDATE character_storage 
@@ -374,12 +375,12 @@ class CharacterStorage {
 					ipfs_hash = ?,
 					ipfs_url = ?,
 					local_file_path = ?,
-					token_address = ?,
-					token_name = ?,
-					token_symbol = ?,
-					token_image_url = ?,
-					token_description = ?,
-					token_tx_hash = ?,
+					asset_id = ?,
+					asset_name = ?,
+					asset_unit_name = ?,
+					asset_url = ?,
+					asset_description = ?,
+					asset_tx_hash = ?,
 					twitter_handle = ?,
 					updated_at = CURRENT_TIMESTAMP
 				WHERE id = ?
@@ -389,12 +390,12 @@ class CharacterStorage {
 					pinataResult.ipfsHash,
 					pinataResult.ipfsUrl,
 					localFile.path,
-					updateData.token?.address || existing.token_address,
-					updateData.token?.name || existing.token_name,
-					updateData.token?.symbol || existing.token_symbol,
-					updateData.token?.imageUrl || existing.token_image_url,
-					updateData.token?.description || existing.token_description,
-					updateData.token?.transactionHash || existing.token_tx_hash,
+					updateData.asset?.assetId || existing.asset_id,
+					updateData.asset?.name || existing.asset_name,
+					updateData.asset?.unitName || existing.asset_unit_name,
+					updateData.asset?.url || existing.asset_url,
+					updateData.asset?.description || existing.asset_description,
+					updateData.asset?.txId || existing.asset_tx_hash,
 					updateData.twitter_handle || existing.twitter_handle,
 					id,
 				],
