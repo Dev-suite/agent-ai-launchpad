@@ -1,0 +1,30 @@
+{
+  "name": "ai-agent-platform",
+  "version": "1.0.0",
+  "description": "AI Agent Platform with Character Dashboard, Swap Component, and AI Brain",
+  "private": true,
+  "scripts": {
+    "dev": "cd character-dashboard && npm run dev",
+    "dev:dashboard": "cd character-dashboard && npm run dev",
+    "dev:swap": "cd swap-component/swap-component && npm run dev",
+    "dev:server": "cd character-creator/server && npm start",
+    "dev:ai": "cd ai-brain && npm run start",
+    "build": "cd character-dashboard && npm run build",
+    "build:dashboard": "cd character-dashboard && npm run build",
+    "build:swap": "cd swap-component/swap-component && npm run build",
+    "install:all": "npm install && cd character-dashboard && npm install && cd ../character-creator/server && npm install && cd ../../ai-brain && npm install && cd ../swap-component/swap-component && npm install",
+    "clean": "rm -rf node_modules character-dashboard/node_modules character-creator/server/node_modules ai-brain/node_modules swap-component/swap-component/node_modules"
+  },
+  "workspaces": [
+    "character-dashboard",
+    "character-creator/server", 
+    "ai-brain",
+    "swap-component/swap-component"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
